@@ -60,10 +60,19 @@ GetRouter.get('/users/:id/page-details', async (request, response) => {
     group: ['recipient_id'],
   });
 
+  const loans_info_given = await models.Loan.findOne({
+    where: { lender_id: request.params.id },
+    attributes: [
+      [fn('SUM', col('amount')), 'loansSum'],
+      [fn('COUNT', col('amount')), 'loansCount'],
+    ],
+    group: ['lender_id'],
+  });
+
   return response.json({
     user,
     reviews_info: {
-      ratingAvg: reviews_info && reviews_info.dataValues.ratingAvg || 0,
+      ratingAvg: reviews_info && parseInt(reviews_info.dataValues.ratingAvg) || 0,
       ratingCount: reviews_info && reviews_info.dataValues.ratingCount || 0,
     },
     loans_info_active: {
@@ -73,6 +82,10 @@ GetRouter.get('/users/:id/page-details', async (request, response) => {
     loans_info_archive: {
       loansSum: loans_info_archive && loans_info_archive.dataValues.loansSum || 0,
       loansCount: loans_info_archive && loans_info_archive.dataValues.loansCount || 0,
+    },
+    loans_info_given: {
+      // loansSum: loans_info_given && loans_info_given.dataValues.loansSum || 0,
+      loansCount: loans_info_given && loans_info_given.dataValues.loansCount || 0,
     }
   });
 });
